@@ -3,6 +3,7 @@
 
 #include "chardev.h"
 #include <linux/ioctl.h>
+#include <linux/spinlock.h>
 
 #define DRIVER_NAME "FAN"
 
@@ -14,5 +15,10 @@
 #define FAN_IOCTL_SET_CONFIG    _IOW(IOC_MAGIC,1,struct fan_chardev_struct )
 #define FAN_IOCTL_GET_CONFIG    _IOR(IOC_MAGIC,2,struct fan_chardev_struct)
 
+
+struct fan_device{
+    struct fan_chardev_struct config;
+    rwlock_t lock;
+};
 
 #endif /*IOCTL_H*/
