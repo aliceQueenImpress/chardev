@@ -20,6 +20,7 @@
 #include <linux/types.h>
 #include <linux/uaccess.h>
 #include <linux/string.h>
+#include <linux/cdev.h>
 #include <linux/spinlock.h>
 
 #include "asm-generic/errno-base.h"
@@ -31,9 +32,13 @@
 #include "linux/export.h"
 #include "linux/fs.h"
 #include "linux/gfp_types.h"
+#include "linux/kdev_t.h"
 #include "linux/types.h"
 
 static struct fan_device *device_data;
+static unsigned int fan_ioctl_major = 0;
+static struct cdev fan_ioctl_dev;
+static int fan_num = 1; //manage 1 device
 
 static int set_profile(struct  fan_device * fan_data_wrap,int32_t speed,int32_t auto_mode,char * profile){
     //to set profile : default profile
@@ -192,26 +197,57 @@ static struct file_operations fops = {
 };
 
 static int  __init fan_init(void){
- int ret = 0;
+    int ret = 0;
+    dev_t dev_fan; // for /dev/fan file
 
     device_data = kmalloc(sizeof(struct fan_device), GFP_KERNEL);
     if (!device_data) {
         return -ENOMEM;
     }
-
     rwlock_init(&device_data->lock);
+
+    ret = alloc_chrdev_region(&dev_fan, 0,fan_num,DRIVER_NAME);
+    if(ret < 0){
+        pr_err("cannot alloc chrdev region\n");
+        goto free_mem;
+    }
+    fan_ioctl_major = MAJOR(dev_fan);
+
+    cdev_init(&fan_ioctl_dev,&fops);
+    fan_ioctl_dev.owner = THIS_MODULE;
+
+    ret = cdev_add(&fan_ioctl_dev,dev_fan,fan_num);
+    if (ret < 0){
+        pr_err("cannot add fan device to te system");
+        goto unregister_region;;
+    }
+    pr_alert("%s driver(major: %d) installed.\n",DRIVER_NAME,fan_ioctl_major);
 
     ret = set_profile(device_data, DEFLT_SPEED, DEFLT_AUTO_MODE, DEFLT_PROFILE);
     if (ret) {
-        kfree(device_data);
-        return ret;
+        goto delete_cdev;
     }
 
     pr_info("%s char device successfully load...\n", DRIVER_NAME);
     return 0;
+
+delete_cdev:
+    cdev_del(&fan_ioctl_dev);
+unregister_region:
+    unregister_chrdev_region(MKDEV(fan_ioctl_major, 0), fan_num);
+free_mem:
+    kfree(device_data);
+    return ret;
 }
 
 static void __exit fan_exit(void){
+
+    dev_t dev_fan = MKDEV(fan_ioctl_major,0);
+
+    cdev_del(&fan_ioctl_dev);
+
+    unregister_chrdev_region(dev_fan, fan_num);
+
     if (device_data) {
         kfree(device_data);
     }
