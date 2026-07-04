@@ -3,6 +3,9 @@
 
 #include <linux/ioctl.h>
 
+//#define __KERNEL__ //  possible to fix : should be add before includings headers
+//user space and kernel space conflict
+
 #define DRIVER_NAME "FAN"
 
 #define IOCTL_VAL_MAXNR 3
