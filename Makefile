@@ -8,8 +8,8 @@ all: module app
 module:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
-app: main.c
-	gcc main.c -o test_fan
+app: userspace_test.c
+	gcc userspace_test.c -o test_fan
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
