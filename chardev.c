@@ -26,14 +26,16 @@
 #include "asm-generic/errno-base.h"
 #include "asm-generic/ioctl.h"
 #include "asm/uaccess.h"
-#include "chardev.h"
-#include "ioctl.h"
-
 #include "linux/export.h"
 #include "linux/fs.h"
 #include "linux/gfp_types.h"
 #include "linux/kdev_t.h"
 #include "linux/types.h"
+
+#include "chardev.h"
+#include "ioctl.h"
+#include "fandev.h"
+
 
 static struct fan_device *device_data;
 static unsigned int fan_ioctl_major = 0;
