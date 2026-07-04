@@ -21,3 +21,32 @@ The driver provides two distinct access interfaces to interact with the hardware
 2. **A textual interface (`read`)**: Allows sysadmins or shell scripts to instantly retrieve a human-readable status report in plain text (ASCII) via standard terminal commands (e.g., `cat /dev/fan`).
 
 The architecture must comply strictly with Linux kernel standards: it must be entirely **thread-safe**  and support **multi-opening** so that multiple applications can monitor or control the same hardware instance simultaneously without data corruption.
+
+## How to launch 
+
+### compile the test userspace application
+```bash
+gcc main.c -o test_fan
+```
+
+### load the driver in the kernel
+```bash
+sudo insmod chardev.ko
+```
+
+### Find the major number
+```bash
+dmesg | tail -n 5
+# you will see line like this : "FAN driver(major: <major_num>) installed."
+```
+
+### create the node under the /dev/... with the major number
+```bash
+sudo mknod /dev/fan c <major_num> 0
+sudo chmod 666 /dev/fan 
+```
+
+### launch the userspace application
+```bash
+./test_fan
+```
