@@ -138,23 +138,18 @@ static  int fan_open(struct inode *inode, struct file* fops){
 }
 
 static ssize_t fan_read(struct file * fops,char __user * buffer, size_t count, loff_t * offset){
-    //TODO: implement the complete for any eg: cat /dev/fan ops
+    //cat /dev/fan ops
     pr_info("try to read in %s\n",__func__);
 
-    return 0;
-
-    /*static ssize_t fan_read(struct file *fops, char __user *buffer, size_t count, loff_t *offset) {
     struct fan_device *dev = fops->private_data;
     struct fan_chardev_struct local_config;
     char kernel_buf[128];
     int len;
 
-    // 1. Si l'utilisateur a déjà tout lu (offset > 0), on signale la fin du fichier (EOF)
     if (*offset > 0) {
         return 0;
     }
 
-    // 2. On récupère les données sous verrou de lecture de manière ultra-rapide
     read_lock(&dev->lock);
     local_config = dev->config;
     read_unlock(&dev->lock);
@@ -166,22 +161,17 @@ static ssize_t fan_read(struct file * fops,char __user * buffer, size_t count, l
                     local_config.auto_mode ? "Auto" : "Manuel",
                     local_config.profile);
 
-    // 4. Si l'utilisateur demande moins d'octets que ce qu'on a préparé, on s'aligne
     if (count < len) {
         len = count;
     }
 
-    // 5. On envoie le texte vers l'espace utilisateur
     if (copy_to_user(buffer, kernel_buf, len)) {
         return -EFAULT;
     }
 
-    // 6. On met à jour l'offset pour que le prochain appel sache qu'on a déjà écrit
     *offset += len;
 
-    // On retourne le nombre d'octets lus
     return len;
-}*/
 }
 
 static int fan_release (struct inode * inode, struct file *fops){
@@ -204,7 +194,6 @@ static struct file_operations fops = {
 static int  __init fan_init(void){
  int ret = 0;
 
-    // CORRECTION : Allocation unique au chargement du module
     device_data = kmalloc(sizeof(struct fan_device), GFP_KERNEL);
     if (!device_data) {
         return -ENOMEM;
@@ -217,8 +206,6 @@ static int  __init fan_init(void){
         kfree(device_data);
         return ret;
     }
-
-    // C'est ici que tu mettras ton register_chrdev / cdev_add plus tard !
 
     pr_info("%s char device successfully load...\n", DRIVER_NAME);
     return 0;
