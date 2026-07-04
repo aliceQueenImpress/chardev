@@ -1,9 +1,16 @@
 obj-m += chardev.o
 
-PWD := $(CURDIR)
+KDIR := /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
 
-all:
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+all: module app
+
+module:
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
+
+app: main.c
+	gcc main.c -o test_fan
 
 clean:
-	$(MAKE) -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
+	rm -f test_fan
